@@ -2,8 +2,8 @@
  * ==========================================================
  * PayrollApplication.java
  * ==========================================================
- * @author : Neel Asher
- * @version : 1.0
+ * @author  : Neel Asher
+ * @version : 2.0
  *
  * Description:
  * This is the main entry point of the Employee Payroll
@@ -24,51 +24,112 @@
 
 package com.payroll.app;
 
-import com.payroll.service.EmployeeService;
 import com.payroll.model.Employee;
+import com.payroll.model.User;
+import com.payroll.model.RegularEmployee;
+import com.payroll.model.Manager;
+import com.payroll.service.EmployeeService;
+import com.payroll.service.AuthenticationService;
+import com.payroll.repository.EmployeeRepository;
 import com.payroll.exception.InvalidDataException;
+import com.payroll.exception.AuthenticationException;
+import com.payroll.session.SessionManager;
+
 import java.util.Scanner;
 
 public class PayrollApplication {
 
     public static void main(String[] args) {
 
-        Scanner sc = new Scanner(System.in);
-        EmployeeService service = new EmployeeService();
+        Scanner scanner = new Scanner(System.in);
+        EmployeeRepository repository = new EmployeeRepository();
+        EmployeeService employeeService = new EmployeeService();
+        AuthenticationService authService = new AuthenticationService(repository);
+        SessionManager sessionManager = new SessionManager();
 
-        try {
+        while (true) {
+            System.out.println("\n=== Employee Payroll System ===");
+            System.out.println("1. Register Employee");
+            System.out.println("2. Login");
+            System.out.println("3. Exit");
+            System.out.print("Choose an option: ");
 
-            System.out.print("Enter Name: ");
-            String name = sc.nextLine();
+            String choice = scanner.nextLine();
 
-            System.out.print("Enter Email: ");
-            String email = sc.nextLine();
+            switch (choice) {
+                case "1":
+                    try {
+                        System.out.print("Enter Name: ");
+                        String name = scanner.nextLine();
 
-            System.out.print("Enter Phone: ");
-            String phone = sc.nextLine();
+                        System.out.print("Enter Email: ");
+                        String email = scanner.nextLine();
 
-            System.out.print("Enter Salary: ");
-            double salary = sc.nextDouble();
-            sc.nextLine();
+                        System.out.print("Enter Phone: ");
+                        String phone = scanner.nextLine();
 
-            System.out.print("Enter Department: ");
-            String department = sc.nextLine();
+                        System.out.print("Enter Salary: ");
+                        double salary = Double.parseDouble(scanner.nextLine());
 
-            System.out.print("Enter Username: ");
-            String username = sc.nextLine();
+                        System.out.print("Enter Department: ");
+                        String department = scanner.nextLine();
 
-            System.out.print("Enter Password: ");
-            String password = sc.nextLine();
+                        System.out.print("Enter Username: ");
+                        String username = scanner.nextLine();
 
-            Employee employee = service.registerEmployee(
-                    name, email, phone, salary, department, username, password
-            );
+                        System.out.print("Enter Password: ");
+                        String password = scanner.nextLine();
 
-            System.out.println("\nEmployee Registered Successfully\n");
-            System.out.println(employee);
+                        Employee employee = employeeService.registerEmployee(
+                                name, email, phone, salary, department, username, password
+                        );
 
-        } catch (InvalidDataException e) {
-            System.out.println("Registration Failed: " + e.getMessage());
+                        repository.saveEmployee(employee);
+
+                        System.out.println("\nEmployee Registered Successfully!");
+                        System.out.println(employee);
+
+                    } catch (InvalidDataException e) {
+                        System.out.println("Registration Failed: " + e.getMessage());
+                    } catch (NumberFormatException e) {
+                        System.out.println("Invalid salary input.");
+                    }
+                    break;
+
+                case "2":
+                    try {
+                        System.out.print("Enter Username: ");
+                        String username = scanner.nextLine();
+
+                        System.out.print("Enter Password: ");
+                        String password = scanner.nextLine();
+
+                        User user = authService.login(username, password);
+                        sessionManager.createSession(user);
+
+                        System.out.println("\nLogin Successful!");
+                        System.out.println("Welcome, " + user.getUsername() + " (" + user.getRole() + ")");
+
+                        if (user instanceof Manager) {
+                            System.out.println("Accessing Manager Dashboard...");
+                        } else if (user instanceof RegularEmployee) {
+                            System.out.println("Accessing Employee Dashboard...");
+                        }
+
+                    } catch (AuthenticationException e) {
+                        System.out.println("Login Failed: " + e.getMessage());
+                    }
+                    break;
+
+                case "3":
+                    System.out.println("Exiting system. Goodbye!");
+                    scanner.close();
+                    System.exit(0);
+                    break;
+
+                default:
+                    System.out.println("Invalid option. Try again.");
+            }
         }
     }
 }

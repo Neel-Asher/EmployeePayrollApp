@@ -33,4 +33,17 @@ public class EmployeeRepository {
     public List<Employee> getAllEmployees() {
         return employees;
     }
+
+    public Employee findByUsername(String username) {
+
+        for (Employee emp : employees) {
+
+            if (emp.getAccount().getUsername().equals(username)) {
+                return emp;
+            }
+
+        }
+
+        return null;
+    }
 }

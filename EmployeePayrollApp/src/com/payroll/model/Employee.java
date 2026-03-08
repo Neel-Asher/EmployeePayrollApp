@@ -38,7 +38,10 @@ public class Employee {
 
     public Employee() {}
 
-    public Employee(String employeeId,String name,String email,String phone,double salary,String department,UserAccount account) {
+    public Employee(String employeeId, String name, String email,
+                    String phone, double salary,
+                    String department, UserAccount account) {
+
         this.employeeId = employeeId;
         this.name = name;
         this.email = email;
@@ -66,6 +69,12 @@ public class Employee {
 
     @Override
     public String toString() {
-        return "Employee ID: "+employeeId+"\nName: "+name+"\nEmail: "+email+"\nPhone: "+phone+"\nDepartment: "+department+"\nSalary: "+salary+"\nUsername: "+account.getUsername();
+        return "Employee ID: " + employeeId +
+                "\nName: " + name +
+                "\nEmail: " + email +
+                "\nPhone: " + phone +
+                "\nDepartment: " + department +
+                "\nSalary: " + salary +
+                "\nUsername: " + account.getUsername();
     }
 }

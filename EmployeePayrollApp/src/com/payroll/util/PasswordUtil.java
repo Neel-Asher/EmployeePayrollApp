@@ -31,10 +31,20 @@ public class PasswordUtil {
 
             StringBuilder hex = new StringBuilder();
 
-            for (byte b : hash) hex.append(String.format("%02x", b));
+            for (byte b : hash)
+                hex.append(String.format("%02x", b));
+
             return hex.toString();
+
         } catch (Exception e) {
             throw new RuntimeException("Password encryption failed");
         }
+    }
+
+    public static boolean verifyPassword(String rawPassword, String storedHash) {
+
+        String encryptedInput = encryptPassword(rawPassword);
+
+        return encryptedInput.equals(storedHash);
     }
 }
