@@ -3,7 +3,7 @@
  * PayrollApplication.java
  * ==========================================================
  * @author  : Neel Asher
- * @version : 2.0
+ * @version : 3.0
  *
  * Description:
  * This is the main entry point of the Employee Payroll
@@ -30,11 +30,13 @@ import com.payroll.model.RegularEmployee;
 import com.payroll.model.Manager;
 import com.payroll.service.EmployeeService;
 import com.payroll.service.AuthenticationService;
+import com.payroll.service.PayrollService;
 import com.payroll.repository.EmployeeRepository;
 import com.payroll.exception.InvalidDataException;
 import com.payroll.exception.AuthenticationException;
 import com.payroll.session.SessionManager;
 
+import java.time.Month;
 import java.util.Scanner;
 
 public class PayrollApplication {
@@ -46,18 +48,20 @@ public class PayrollApplication {
         EmployeeService employeeService = new EmployeeService();
         AuthenticationService authService = new AuthenticationService(repository);
         SessionManager sessionManager = new SessionManager();
+        PayrollService payrollService = new PayrollService();
 
         while (true) {
             System.out.println("\n=== Employee Payroll System ===");
             System.out.println("1. Register Employee");
             System.out.println("2. Login");
-            System.out.println("3. Exit");
+            System.out.println("3. Generate Payslip");
+            System.out.println("4. Exit");
             System.out.print("Choose an option: ");
 
             String choice = scanner.nextLine();
 
             switch (choice) {
-                case "1":
+                case "1": // UC1 Registration
                     try {
                         System.out.print("Enter Name: ");
                         String name = scanner.nextLine();
@@ -96,7 +100,7 @@ public class PayrollApplication {
                     }
                     break;
 
-                case "2":
+                case "2": // UC2 Login
                     try {
                         System.out.print("Enter Username: ");
                         String username = scanner.nextLine();
@@ -121,7 +125,33 @@ public class PayrollApplication {
                     }
                     break;
 
-                case "3":
+                case "3": // UC3 Payslip
+                    try {
+                        if (!sessionManager.isActive()) {
+                            System.out.println("Please login first to generate payslip.");
+                            break;
+                        }
+
+                        User currentUser = sessionManager.getCurrentUser();
+                        Employee employee = repository.findByUsername(currentUser.getUsername());
+
+                        System.out.print("Enter Month (1-12): ");
+                        int monthInt = Integer.parseInt(scanner.nextLine());
+
+                        System.out.print("Enter Year (e.g., 2026): ");
+                        int year = Integer.parseInt(scanner.nextLine());
+
+                        Month month = Month.of(monthInt);
+
+                        System.out.println("\nGenerating Payslip...\n");
+                        System.out.println(payrollService.generatePayslip(employee, month, year));
+
+                    } catch (Exception e) {
+                        System.out.println("Payslip Generation Failed: " + e.getMessage());
+                    }
+                    break;
+
+                case "4":
                     System.out.println("Exiting system. Goodbye!");
                     scanner.close();
                     System.exit(0);
