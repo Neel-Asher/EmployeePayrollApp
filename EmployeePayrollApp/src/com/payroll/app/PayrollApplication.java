@@ -26,11 +26,10 @@ package com.payroll.app;
 
 import com.payroll.model.Employee;
 import com.payroll.model.User;
-import com.payroll.model.RegularEmployee;
-import com.payroll.model.Manager;
 import com.payroll.service.EmployeeService;
 import com.payroll.service.AuthenticationService;
 import com.payroll.service.PayrollService;
+import com.payroll.service.FileService;
 import com.payroll.repository.EmployeeRepository;
 import com.payroll.exception.InvalidDataException;
 import com.payroll.exception.AuthenticationException;
@@ -49,13 +48,15 @@ public class PayrollApplication {
         AuthenticationService authService = new AuthenticationService(repository);
         SessionManager sessionManager = new SessionManager();
         PayrollService payrollService = new PayrollService();
+        FileService fileService = new FileService();
 
         while (true) {
             System.out.println("\n=== Employee Payroll System ===");
             System.out.println("1. Register Employee");
             System.out.println("2. Login");
             System.out.println("3. Generate Payslip");
-            System.out.println("4. Exit");
+            System.out.println("4. Download Payslip");
+            System.out.println("5. Exit");
             System.out.print("Choose an option: ");
 
             String choice = scanner.nextLine();
@@ -114,18 +115,12 @@ public class PayrollApplication {
                         System.out.println("\nLogin Successful!");
                         System.out.println("Welcome, " + user.getUsername() + " (" + user.getRole() + ")");
 
-                        if (user instanceof Manager) {
-                            System.out.println("Accessing Manager Dashboard...");
-                        } else if (user instanceof RegularEmployee) {
-                            System.out.println("Accessing Employee Dashboard...");
-                        }
-
                     } catch (AuthenticationException e) {
                         System.out.println("Login Failed: " + e.getMessage());
                     }
                     break;
 
-                case "3": // UC3 Payslip
+                case "3": // UC3 Generate Payslip
                     try {
                         if (!sessionManager.isActive()) {
                             System.out.println("Please login first to generate payslip.");
@@ -151,7 +146,37 @@ public class PayrollApplication {
                     }
                     break;
 
-                case "4":
+                case "4": // UC4 Download Payslip
+                    try {
+                        if (!sessionManager.isActive()) {
+                            System.out.println("Please login first to download payslip.");
+                            break;
+                        }
+
+                        User currentUser = sessionManager.getCurrentUser();
+                        Employee employee = repository.findByUsername(currentUser.getUsername());
+
+                        System.out.print("Enter Month (1-12): ");
+                        int monthInt = Integer.parseInt(scanner.nextLine());
+
+                        System.out.print("Enter Year (e.g., 2026): ");
+                        int year = Integer.parseInt(scanner.nextLine());
+
+                        Month month = Month.of(monthInt);
+
+                        // Generate the payslip first
+                        var payslip = payrollService.generatePayslip(employee, month, year);
+
+                        // Save via FileService
+                        String filename = fileService.savePayslip(payslip);
+                        System.out.println("Payslip saved successfully: " + filename);
+
+                    } catch (Exception e) {
+                        System.out.println("Payslip Download Failed: " + e.getMessage());
+                    }
+                    break;
+
+                case "5":
                     System.out.println("Exiting system. Goodbye!");
                     scanner.close();
                     System.exit(0);

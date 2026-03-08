@@ -1,8 +1,9 @@
 package com.payroll.model;
 
 import java.time.Month;
+import java.util.Objects;
 
-public class Payslip {
+public class Payslip implements Cloneable {
 
     private Employee employee;              // Aggregation: Employee
     private SalaryComponents components;    // Composition: SalaryComponents
@@ -11,7 +12,14 @@ public class Payslip {
 
     public Payslip(Employee employee, SalaryComponents components, Month month, int year) {
         this.employee = employee;
-        this.components = components;
+        // Deep copy to ensure original SalaryComponents isn't modified
+        this.components = new SalaryComponents()
+                .setBasic(components.getBasic())
+                .setHra(components.getHra())
+                .setAllowances(components.getAllowances())
+                .setPf(components.getPf())
+                .setTax(components.getTax())
+                .setNetPay(components.getNetPay());
         this.month = month;
         this.year = year;
     }
@@ -31,5 +39,39 @@ public class Payslip {
                 "---------------------\n" +
                 components.toString() + "\n" +
                 "=====================";
+    }
+
+    @Override
+    public Payslip clone() {
+        try {
+            Payslip cloned = (Payslip) super.clone();
+            // Deep clone SalaryComponents
+            cloned.components = new SalaryComponents()
+                    .setBasic(this.components.getBasic())
+                    .setHra(this.components.getHra())
+                    .setAllowances(this.components.getAllowances())
+                    .setPf(this.components.getPf())
+                    .setTax(this.components.getTax())
+                    .setNetPay(this.components.getNetPay());
+            return cloned;
+        } catch (CloneNotSupportedException e) {
+            throw new RuntimeException("Cloning failed for Payslip");
+        }
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Payslip)) return false;
+        Payslip payslip = (Payslip) o;
+        return year == payslip.year &&
+               Objects.equals(employee.getEmployeeId(), payslip.employee.getEmployeeId()) &&
+               month == payslip.month &&
+               Objects.equals(components.getNetPay(), payslip.components.getNetPay());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(employee.getEmployeeId(), month, year, components.getNetPay());
     }
 }
