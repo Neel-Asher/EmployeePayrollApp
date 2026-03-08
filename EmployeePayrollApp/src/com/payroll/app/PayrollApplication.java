@@ -30,8 +30,8 @@ import com.payroll.repository.EmployeeRepository;
 import com.payroll.repository.PayslipRepository;
 import com.payroll.service.*;
 import com.payroll.interfaces.Dashboard;
-import com.payroll.exception.InvalidDataException;
 import com.payroll.exception.AuthenticationException;
+import com.payroll.exception.ValidationException;
 import com.payroll.session.SessionManager;
 
 import java.time.Month;
@@ -65,16 +65,49 @@ public class PayrollApplication {
 
             switch (choice) {
 
-                case "1":
-                    // UC1 Registration logic remains same
+                case "1": // UC1 Registration with UC6 validation
+                    try {
+                        System.out.print("Enter Name: ");
+                        String name = scanner.nextLine();
+
+                        System.out.print("Enter Email: ");
+                        String email = scanner.nextLine();
+
+                        System.out.print("Enter Phone: ");
+                        String phone = scanner.nextLine();
+
+                        System.out.print("Enter Salary: ");
+                        double salary = Double.parseDouble(scanner.nextLine());
+
+                        System.out.print("Enter Department: ");
+                        String department = scanner.nextLine();
+
+                        System.out.print("Enter Username: ");
+                        String username = scanner.nextLine();
+
+                        System.out.print("Enter Password: ");
+                        String password = scanner.nextLine();
+
+                        // EmployeeService now internally calls ValidationService
+                        Employee employee = employeeService.registerEmployee(
+                                name, email, phone, salary, department, username, password
+                        );
+
+                        System.out.println("\nEmployee Registered Successfully\n");
+                        System.out.println(employee);
+
+                    } catch (ValidationException e) {
+                        System.out.println("Validation Error: " + e.getMessage());
+                    } catch (Exception e) {
+                        System.out.println("Registration Failed: " + e.getMessage());
+                    }
                     break;
 
-                case "2":
-                    // UC2 Login logic remains same
+                case "2": // UC2 Login
+                    // Keep your existing login logic
                     break;
 
-                case "3":
-                    // UC3 Generate Payslip logic
+                case "3": // UC3 Generate Payslip
                     try {
                         if (!sessionManager.isActive()) {
                             System.out.println("Please login first to generate payslip.");
@@ -102,8 +135,8 @@ public class PayrollApplication {
                     }
                     break;
 
-                case "4":
-                    // UC4 Download Payslip logic remains same
+                case "4": // UC4 Download Payslip
+                    // Keep existing download logic
                     break;
 
                 case "5": // UC5 View Dashboard
